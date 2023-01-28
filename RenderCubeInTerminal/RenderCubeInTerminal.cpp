@@ -3,10 +3,6 @@
 #include <iostream>
 #define _USE_MATH_DEFINES
 #include <math.h> // why cmath doesn't include math constants?
-#define NOMINMAX
-#include <windows.h>
-#undef near
-#undef far
 #include <chrono>
 #include <thread>
 #include <iomanip>
@@ -31,14 +27,12 @@ const float CAMERA_Z = -CUBE_LEN / 2.0f - 50.0f;
 const float ROTATION_DELTA_X = 1.0f * M_PI / 180.0f;
 const float ROTATION_DELTA_Y = 0.5f * M_PI / 180.0f;
 const float ROTATION_DELTA_Z = 0.3f * M_PI / 180.0f;
-using namespace std::chrono_literals;
-// this program doesn't keep in mind with rotation speed by frame speed(fps) 
-// so, if you modify RENDER_INTERVAL to short period, rotation speed will be increased.
-const auto RENDER_INTERVAL = 100ms;
+
 
 char buffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 float zBuffer[SCREEN_HEIGHT][SCREEN_WIDTH];
 
+void PrintToTerminal(int renderMs, float rotationX, float rotationY, float rotationZ);
 void Render(const float rotationX, const float rotationY, const float rotationZ);
 void PrintBuffer();
 void ClearBuffer();
@@ -68,7 +62,8 @@ inline void CalculateRotation(float* pResultX,
     const float rotZ);
 
 constexpr float Rad2Deg(float radian) { return radian * 180.0f / M_PI; }
-constexpr float  Deg2Rad(float degree) { return degree * M_PI / 180.0f; }
+constexpr float Deg2Rad(float degree) { return degree * M_PI / 180.0f; }
+constexpr float ClipRadian(float radian);
 
 int main()
 {    
@@ -77,36 +72,50 @@ int main()
     float rotationY = 0.0f;
     float rotationZ = 0.0f;
 
-    float prevRenderMs = -1;    
-    while (true) {
-        // clear terminal       
-        system("cls");
-
-        // print information
-        std::cout << "ms per frame: " << prevRenderMs << "ms" << std::endl;
-        std::cout << std::fixed << std::setprecision(2)
-            << "rotation: "
-            << "x(" << Rad2Deg(rotationX) << "deg)"
-            << " y(" << Rad2Deg(rotationY) << "deg)"
-            << " z(" << Rad2Deg(rotationZ) << "deg)"
-            << " by origin axis"
-            << std::endl;
-
+    while (true) {              
         // update rotation
         rotationX += ROTATION_DELTA_X;
+        rotationX = ClipRadian(rotationX);
         rotationY += ROTATION_DELTA_Y;
+        rotationY = ClipRadian(rotationY);
         rotationZ += ROTATION_DELTA_Z;
+        rotationZ = ClipRadian(rotationZ);
 
         // render
         auto start = std::chrono::high_resolution_clock::now();        
         Render(rotationX, rotationY, rotationZ);
         auto end = std::chrono::high_resolution_clock::now();
         
-        prevRenderMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();        
+        float rotationMs = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();        
+
+        // print to terminal        
+        PrintToTerminal(rotationMs, rotationX, rotationY, rotationZ);                
     }
 }
 
-void Render(const float rotationX, const float rotationY, const float rotationZ) {       
+void PrintToTerminal(int renderMs, float rotationX, float rotationY, float rotationZ)
+{
+    // clear terminal
+    std::cout << "\x1B[2J\x1B[H";
+
+    // print information
+    std::cout << "ms per frame: " << renderMs << "ms" << std::endl;
+    std::cout << std::fixed << std::setprecision(2)
+        << "rotation: "
+        << "x(" << Rad2Deg(rotationX) << "deg)"
+        << " y(" << Rad2Deg(rotationY) << "deg)"
+        << " z(" << Rad2Deg(rotationZ) << "deg)"
+        << " by origin axis"
+        << std::endl;
+
+
+    // print buffer
+    PrintBuffer();
+
+    std::cout << std::flush;
+}
+
+void Render(const float rotationX, const float rotationY, const float rotationZ) {
     // clear buffer
     ClearBuffer();
 
@@ -138,13 +147,7 @@ void Render(const float rotationX, const float rotationY, const float rotationZ)
             CalculateScreenSpace(&screenX, &screenY, &depth, CUBE_LEN / 2, planeX, planeY, rotationX, rotationY, rotationZ);
             RenderOnBuffer(screenX, screenY, depth, '&');
         }
-    }
-
-    // print buffer in terminal
-    PrintBuffer();
-
-    // sleep
-    std::this_thread::sleep_for(RENDER_INTERVAL);
+    }    
 }
 
 void ClearBuffer() {
@@ -163,7 +166,7 @@ void PrintBuffer()
             std::cout << buffer[i][j];
         }
         std::cout << '\n';
-    }       
+    }    
 }
 
 void CalculateScreenSpace(int* pScreenX,
@@ -240,6 +243,18 @@ inline void CalculateRotation(float* pResultX,
     *pResultX = x * cosB * cosC + z * sinB - y * cosB * sinC;
     *pResultY = x * (sinA * sinB * cosC + cosA * sinC) + y * (cosA * cosC - sinA * sinB * sinC) - z * sinA * cosB;
     *pResultZ = x * (sinA * sinC - cosA * sinB * cosC) + y * (cosA * sinB * sinC + sinA * cosC) + z * cosA * cosB;
+}
+
+constexpr float ClipRadian(float radian)
+{
+    if (radian > 2.0f * M_PI) {
+        return radian - M_PI * floorf(radian / M_PI);
+    }
+    else if (radian < 0) {
+        return radian + M_PI * ceilf(-radian / M_PI);
+    }
+
+    return radian;
 }
 
 
