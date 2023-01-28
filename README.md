@@ -21,12 +21,11 @@ https://www.youtube.com/embed/p09i_hoFdd0
 - windows
 - visual studio
 
-If you want to use other environments, download code file only and configure makefile.  
-In addition, this program has dependencies on windows to clear command prompt. Change this to use code in your environment properly.
+If you want to use other environments, download code file(cpp) only and configure makefile.
 
 ### Use
-- windows & visual studio : clone & open cloned solution in visual studio
-- other environment : download code only. and modify it to suit your environment
+- windows & visual studio : clone & open it in visual studio.
+- other environment : download code only. and modify it to suit your environment.
 
 
 ## P.S.
