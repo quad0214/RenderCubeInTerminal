@@ -11,7 +11,7 @@ For simplification, several assumptions are existed.
 - position of the cube in world is origin
 - etc...
 
-One thing is existed that's different from the standard rendering technique in this program; In the same manner as above, it doesn't progress rasterization. Instead, slices all sides of the cube into small vertices. And converts them to screen space & render. This method doesn't perfect when the cube is close to the camera because it causes holes in rendered sides of the cube. But when the distance between the cube and the camera is enough far, holes are not seen. so I bear(ignore) this.
+One thing is existed that's different from the standard rendering technique in this program; In the same manner as above, it doesn't progress rasterization. Instead, slices all sides of the cube into small vertices(in program, indicate segments). And converts them to screen space & render. This method doesn't perfect when the cube is close to the camera because it causes holes in rendered sides of the cube. But when the distance between the cube and the camera is enough far, holes are not seen. so I bear(ignore) this.
 
 ## Inspired by
 https://www.youtube.com/embed/p09i_hoFdd0
