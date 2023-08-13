@@ -246,6 +246,8 @@ private:
 	DF mDyEdge12s[4];
 	DF mDyEdge20s[4];
 	
+	DF mTriSizeMul2;
+
 	// bbox covers triangle
 	FP mMinX = FP::ZERO;
 	FP mMaxX = FP::ZERO;

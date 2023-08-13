@@ -433,10 +433,10 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 		FixedVec4 startPos(startX, startY, 0, 0);
 
 		// pre calculate 2 * triangle size
-		DF TriSizeMul2 = EdgeFunctionFixedPoint(v0.pos, v1.pos, v2.pos);
+		mTriSizeMul2 = EdgeFunctionFixedPoint(v0.pos, v1.pos, v2.pos);
 		//		because of precision of fixed point, 
 		//		difference positions of vertices before conversion of fixed point can be same after it.
-		if (TriSizeMul2 == 0) {
+		if (mTriSizeMul2 == 0) {
 			continue;
 		}
 
@@ -534,16 +534,16 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 					continue;
 				}
 
-				DF edge01 = edge01 / TriSizeMul2;
-				DF edge12 = edge12 / TriSizeMul2;
-				DF edge20 = edge20 / TriSizeMul2;
+				DF bary01 = edge01 / mTriSizeMul2;
+				DF bary12 = edge12 / mTriSizeMul2;
+				DF bary20 = edge20 / mTriSizeMul2;
 
 				Vec4 pos = Vec4::ZERO;
 				pos.x = x.ToFloat();
 				pos.y = y.ToFloat();
-				pos.w = edge12.ToDouble() / v0.pos.w.ToFloat()
-					+ edge20.ToDouble() / v1.pos.w.ToFloat()
-					+ edge01.ToDouble() / v2.pos.w.ToFloat();
+				pos.w = bary12.ToDouble() / v0.pos.w.ToFloat()
+					+ bary20.ToDouble() / v1.pos.w.ToFloat()
+					+ bary01.ToDouble() / v2.pos.w.ToFloat();
 				pos.z = 1.0f / pos.w;
 
 				Pixel pixel;
@@ -631,20 +631,22 @@ void SWRasterizer::RasterizePartFixedPoint(
 		|| topY < mMinY
 		|| bottomY >= mMaxY;
 	
-	bool isOutTriangle = edge01 > DF::ZERO
-		|| edge12 > DF::ZERO
-		|| edge20 > DF::ZERO
-		|| rightTopEdge01 > DF::ZERO
-		|| rightTopEdge12 > DF::ZERO
-		|| rightTopEdge20 > DF::ZERO
-		|| leftBottomEdge01 > DF::ZERO
-		|| leftBottomEdge12 > DF::ZERO
-		|| leftBottomEdge20 > DF::ZERO
-		|| rightBottomEdge01 > DF::ZERO
-		|| rightBottomEdge12 > DF::ZERO
-		|| rightBottomEdge20 > DF::ZERO;
+	// for not thinking top-left rule in 4*4, 8*8 pixel blocks in triangle,
+	// select only pixel blocks in triangle and not on triangle sides.
+	bool isOutOrOnTriangle = edge01 >= DF::ZERO
+		|| edge12 >= DF::ZERO
+		|| edge20 >= DF::ZERO
+		|| rightTopEdge01 >= DF::ZERO
+		|| rightTopEdge12 >= DF::ZERO
+		|| rightTopEdge20 >= DF::ZERO
+		|| leftBottomEdge01 >= DF::ZERO
+		|| leftBottomEdge12 >= DF::ZERO
+		|| leftBottomEdge20 >= DF::ZERO
+		|| rightBottomEdge01 >= DF::ZERO
+		|| rightBottomEdge12 >= DF::ZERO
+		|| rightBottomEdge20 >= DF::ZERO;
 
-	if (isOutBBox || isOutTriangle) {
+	if (isOutBBox || isOutOrOnTriangle) {
 		uint8_t finePixelLengthLog2 = pixelLengthLog2 - 1;
 		FP finePixelLength(1 << finePixelLengthLog2);
 
@@ -678,27 +680,20 @@ void SWRasterizer::RasterizePartFixedPoint(
 		DF xEdge12 = yEdge12;
 		DF xEdge20 = yEdge20;
 		for (uint8_t xIdx = 0; xIdx < pixelLength; xIdx++) {
-			// todo : 이거 왜 단축 안 시키고 걍 이거 쓰냐???
-			// 뭐지??
-			//TODO : 조건 if 최적화
+			// todo : create advanced partition rasterization in two methods
+			// 1. advanced edge differenece only pixel blocks in triangle and not on sides of triangle
+			// 2. add brances when pixel blocks include pixels on right or bottom sides of triangle
 
-			if (edge01 == DF::ZERO
-				&& !IsLeftLineFixedPoint(v0Pos, v1Pos)
-				&& !IsTopLineFixedPoint(v0Pos, v1Pos)) {
-				return false;
-			}
-
-			if (edge12 == DF::ZERO
-				&& !IsLeftLineFixedPoint(v1Pos, v2Pos)
-				&& !IsTopLineFixedPoint(v1Pos, v2Pos)) {
-				return false;
-			}
-
-			if (edge20 == DF::ZERO
-				&& !IsLeftLineFixedPoint(v2Pos, v0Pos)
-				&& !IsTopLineFixedPoint(v2Pos, v0Pos)) {
-				return false;
-			}
+			Pixel pixel;
+			pixel.pos = InterpolatePosFixedPoint(x,
+				y,
+				v0Pos,
+				v1Pos,
+				v2Pos,
+				xEdge01,
+				xEdge12,
+				xEdge20);
+			mPixels->Add(pixel);
 
 			
 			xEdge01 += mDxEdge01s[0];
@@ -800,6 +795,11 @@ inline Vec4 SWRasterizer::InterpolatePosFixedPoint(
 	DF edge12,
 	DF edge20) const
 {
+	DF bary01 = edge01 / mTriSizeMul2;
+	DF bary12 = edge12 / mTriSizeMul2;
+	DF bary20 = edge20 / mTriSizeMul2;
+
+
 	Vec4 pos = Vec4::ZERO;
 	pos.x = x.ToFloat();
 	pos.y = y.ToFloat();	
