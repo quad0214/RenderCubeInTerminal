@@ -116,6 +116,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,6 +132,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,7 +143,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LinkedList.ipp" />
+    <ClCompile Include="Math.cpp" />
+    <ClCompile Include="PixelShaderManager.cpp" />
+    <ClCompile Include="PseudoRenderer.cpp" />
     <ClCompile Include="RenderCubeInTerminal.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="SimplePixelShader.cpp" />
+    <ClCompile Include="StaticMemoryPool.ipp" />
+    <ClCompile Include="DynamicMemoryPool.ipp" />
+    <ClCompile Include="SWRasterizer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Constants.h" />
+    <ClInclude Include="LinkedList.hpp" />
+    <ClInclude Include="List.hpp" />
+    <ClInclude Include="Math.h" />
+    <ClInclude Include="PixelShader.h" />
+    <ClInclude Include="PixelShaderManager.h" />
+    <ClInclude Include="PseudoRenderer.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="SimplePixelShader.h" />
+    <ClInclude Include="StaticMemoryPool.hpp" />
+    <ClInclude Include="DynamicMemoryPool.hpp" />
+    <ClInclude Include="SWRasterizer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

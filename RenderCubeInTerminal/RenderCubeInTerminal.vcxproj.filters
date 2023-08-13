@@ -13,10 +13,78 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\PixelShader">
+      <UniqueIdentifier>{06d019a7-d437-4cd1-8a08-297758c59bdb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RenderCubeInTerminal.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="PseudoRenderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SWRasterizer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Math.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticMemoryPool.ipp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicMemoryPool.ipp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="LinkedList.ipp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="SimplePixelShader.cpp">
+      <Filter>소스 파일\PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelShaderManager.cpp">
+      <Filter>소스 파일\PixelShader</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PseudoRenderer.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Math.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SWRasterizer.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticMemoryPool.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicMemoryPool.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="LinkedList.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="List.hpp">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShader.h">
+      <Filter>소스 파일\PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="SimplePixelShader.h">
+      <Filter>소스 파일\PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShaderManager.h">
+      <Filter>소스 파일\PixelShader</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
