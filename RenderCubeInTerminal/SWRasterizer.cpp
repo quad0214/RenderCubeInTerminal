@@ -408,6 +408,7 @@ void SWRasterizer::ConvertFixedPoint(List** pOutVertices, const List* vertices)
 }
 
 // todo : save is left, top line each triangle
+// todo : left, top 변수 미리 계산해서 변수로 빼놓기
 void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* indices)
 {
 	const static FP halfOne = FP(0.5f);
@@ -428,8 +429,8 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 		// conversion of common number from floating number to fixed number
 		FP minXFloor = mMinX.Floor();
 		FP minYFloor = mMinY.Floor();
-		FP startX = mMinX - minXFloor >= halfOne ? minXFloor + one + halfOne : minXFloor + halfOne;
-		FP startY = mMinY - minYFloor >= halfOne ? minYFloor + one + halfOne : minYFloor + halfOne;
+		FP startX = mMinX - minXFloor > halfOne ? minXFloor + one + halfOne : minXFloor + halfOne;
+		FP startY = mMinY - minYFloor > halfOne ? minYFloor + one + halfOne : minYFloor + halfOne;
 		FixedVec4 startPos(startX, startY, 0, 0);
 
 		// pre calculate 2 * triangle size
@@ -441,11 +442,8 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 		}
 
 		// fixed number & partition rasterization
-#ifdef PARTITION_RASTERIZATION
-
-		// pre calculate difference of edge value by 2^i x, 2^i y		
-		// TOOD : 미리 나눗셈을 진행해도 수 범위는 벗어남
-		// TODO ; and change toDobule to convert
+#if RASTERIZATION_TYPE == PARTITION_RASTERIZATION
+		// pre calculate difference of edge value by 2^i x, 2^i y				
 		mDxEdge01s[0] = (v1.pos.y - v0.pos.y).ToDoubleFixedPoint();
 		mDxEdge12s[0] = (v2.pos.y - v1.pos.y).ToDoubleFixedPoint();
 		mDxEdge20s[0] = (v0.pos.y - v2.pos.y).ToDoubleFixedPoint();
@@ -491,6 +489,84 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 			yEdge20 += mDyEdge20s[3];
 
 		}
+#elif RASTERIZATION_TYPE == ADVANCED_RASTERIZATION
+		mDxEdge01s[0] = (v1.pos.y - v0.pos.y).ToDoubleFixedPoint();
+		mDxEdge12s[0] = (v2.pos.y - v1.pos.y).ToDoubleFixedPoint();
+		mDxEdge20s[0] = (v0.pos.y - v2.pos.y).ToDoubleFixedPoint();
+		mDyEdge01s[0] = (v0.pos.x - v1.pos.x).ToDoubleFixedPoint();
+		mDyEdge12s[0] = (v1.pos.x - v2.pos.x).ToDoubleFixedPoint();
+		mDyEdge20s[0] = (v2.pos.x - v0.pos.x).ToDoubleFixedPoint();
+
+		DF yEdge01 = EdgeFunctionFixedPoint(startPos, v0.pos, v1.pos);
+		DF yEdge12 = EdgeFunctionFixedPoint(startPos, v1.pos, v2.pos);
+		DF yEdge20 = EdgeFunctionFixedPoint(startPos, v2.pos, v0.pos);
+		for (FP y = startY;
+			y <= mMaxY;
+			y += one,
+			yEdge01 += mDyEdge01s[0],
+			yEdge12 += mDyEdge12s[0],
+			yEdge20 += mDyEdge20s[0])
+		{
+			DF xEdge01 = yEdge01;
+			DF xEdge12 = yEdge12;
+			DF xEdge20 = yEdge20;
+
+			for (FP x = startX; 
+				x <= mMaxX;
+				x += one,
+				xEdge01 += mDxEdge01s[0],
+				xEdge12 += mDxEdge12s[0],
+				xEdge20 += mDxEdge20s[0]) 
+			{
+				FixedVec4 pixelPos(x, y, FP::ZERO, FP::ZERO);
+				DF edge01 = EdgeFunctionFixedPoint(pixelPos, v0.pos, v1.pos);
+				DF edge12 = EdgeFunctionFixedPoint(pixelPos, v1.pos, v2.pos);
+				DF edge20 = EdgeFunctionFixedPoint(pixelPos, v2.pos, v0.pos);
+
+				//TODO : 조건 if 최적화
+				if (edge01 > DF::ZERO
+					|| edge12 > DF::ZERO
+					|| edge20 > DF::ZERO) {
+					continue;
+				}
+
+				if (edge01 == DF::ZERO
+					&& !IsLeftLineFixedPoint(v0.pos, v1.pos)
+					&& !IsTopLineFixedPoint(v0.pos, v1.pos)) {
+					continue;
+				}
+
+				if (edge12 == DF::ZERO
+					&& !IsLeftLineFixedPoint(v1.pos, v2.pos)
+					&& !IsTopLineFixedPoint(v1.pos, v2.pos)) {
+					continue;
+				}
+
+				if (edge20 == DF::ZERO
+					&& !IsLeftLineFixedPoint(v2.pos, v0.pos)
+					&& !IsTopLineFixedPoint(v2.pos, v0.pos)) {
+					continue;
+				}
+
+				DF bary01 = edge01 / mTriSizeMul2;
+				DF bary12 = edge12 / mTriSizeMul2;
+				DF bary20 = edge20 / mTriSizeMul2;
+
+				Vec4 pos = Vec4::ZERO;
+				pos.x = x.ToFloat();
+				pos.y = y.ToFloat();
+				pos.w = bary12.ToDouble() / v0.pos.w.ToFloat()
+					+ bary20.ToDouble() / v1.pos.w.ToFloat()
+					+ bary01.ToDouble() / v2.pos.w.ToFloat();
+				pos.z = 1.0f / pos.w;
+
+				Pixel pixel;
+				pixel.pos = pos;
+				mPixels->Add(pixel);
+			}
+			
+		}
+
 		// fixed number & normal rasterization
 #else
 		for (FP y = startY; y <= mMaxY; y += one) {
@@ -499,15 +575,6 @@ void SWRasterizer::RasterizeFixedPoint(const List* fixedVertices, const List* in
 				DF edge01 = EdgeFunctionFixedPoint(pixelPos, v0.pos, v1.pos);
 				DF edge12 = EdgeFunctionFixedPoint(pixelPos, v1.pos, v2.pos);
 				DF edge20 = EdgeFunctionFixedPoint(pixelPos, v2.pos, v0.pos);
-
-				// out viewport
-				bool isOutBBox = x < mMinX
-					|| x >= mMaxX
-					|| y < mMinY
-					|| y >= mMaxY;
-				if (isOutBBox) {
-					continue;
-				}
 
 				//TODO : 조건 if 최적화
 				if (edge01 > DF::ZERO
@@ -627,9 +694,9 @@ void SWRasterizer::RasterizePartFixedPoint(
 
 	// TODO : think what is faster btw simd comp, contiguous || in if
 	bool isOutBBox = leftX < mMinX
-		|| rightX >= mMaxX
+		|| rightX > mMaxX
 		|| topY < mMinY
-		|| bottomY >= mMaxY;
+		|| bottomY > mMaxY;
 	
 	// for not thinking top-left rule in 4*4, 8*8 pixel blocks in triangle,
 	// select only pixel blocks in triangle and not on triangle sides.
@@ -775,9 +842,11 @@ inline bool SWRasterizer::IsSelectPixelFixedPoint(const FixedVec4& v0Pos, const 
 	return true;
 }
 
+
+
 inline bool SWRasterizer::IsLeftLineFixedPoint(const FixedVec4& prePos, const FixedVec4& nextPos) const
 {
-	return (nextPos - prePos).y > 0;
+	return (nextPos - prePos).y < 0;
 }
 
 inline bool SWRasterizer::IsTopLineFixedPoint(const FixedVec4& prePos, const FixedVec4& nextPos) const

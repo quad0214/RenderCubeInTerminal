@@ -1,9 +1,13 @@
 #pragma once
 
 //#define DEBUG_PROCESS_COORDINATE
+ 
 // todo : divide swrasterizer's pipeline. remove conversion to fixedvec4 in floating pipeline
-//#define FIXED_NUMBER_RASTERIZATION
-//#define PARTITION_RASTERIZATION
+#define NORMAL_RASTERIZATION 0
+#define PARTITION_RASTERIZATION 1
+#define ADVANCED_RASTERIZATION 2
+#define RASTERIZATION_TYPE ADVANCED_RASTERIZATION
+
 
 #include "DynamicMemoryPool.hpp"
 #include "Math.h"

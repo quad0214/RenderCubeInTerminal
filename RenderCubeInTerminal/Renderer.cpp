@@ -162,10 +162,11 @@ void Renderer::PrintToTerminal()
 #endif
 }
 
-void Renderer::RenderCube(const float rotationX, const float rotationY, const float rotationZ) {
-    // TODO : move to render
+void Renderer::RenderCube(const float rotationX, const float rotationY, const float rotationZ) {    
     // vertex shader
     int vertexNum = sizeof(mVertices) / sizeof(mVertices[0]);
+
+    // todo : pooling
     Vertex* projVertices = new Vertex[vertexNum];
     for (int i = 0; i < vertexNum; i++) {
         TransformVertexPosition(&projVertices[i], mVertices[i], rotationX, rotationY, rotationZ);
@@ -177,7 +178,35 @@ void Renderer::RenderCube(const float rotationX, const float rotationY, const fl
         wchar_t printChars[6] = { L'@', L'#' , L'$' , L'%' , L'=' , L'&' };
         mSimplePixelShader->SetCharacter(printChars[partIndex]);
         Render(projVertices, vertexNum, mIndices + partIndex * 6, 6, mSimplePixelShader);        
-    }        
+    }
+
+
+    // debugging info : test top-left rule using two triangle contiguous
+   /* Vec4 pixelPoses[4]{
+        Vec4(3.5f, 3.5f, 0, 0),
+        Vec4(1.5f, 5.5f, 0, 0),
+        Vec4(5.5f, 5.5f, 0, 0),
+        Vec4(3.5f, 7.5f, 0, 0)
+    };
+
+    int vertexNum = 4;
+    Vertex vertices[4]{};
+    for (int i = 0; i < 4; i++) {
+        float near = 1.0f / tanf(Constants::FOVY / 2.0f);
+        vertices[i].pos = 
+            Vec4(
+                near * (pixelPoses[i].x * 2.0f / Constants::RENDER_SCREEN_WIDTH - 1.0f),
+                near * (-pixelPoses[i].y * 2.0f / Constants::RENDER_SCREEN_HEIGHT + 1.0f),
+                0,
+                near);
+    }
+
+    uint32_t indices[6]{
+        2, 1, 0,
+        1, 2, 3
+    };
+    mSimplePixelShader->SetCharacter(L'#');
+    Render(vertices, 4, indices, 6, mSimplePixelShader);*/
     
 
     // move render buffer to conosle buffer
