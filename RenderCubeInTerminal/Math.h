@@ -548,18 +548,18 @@ struct FixedVec4 {
     FP z;
     FP w;
 
-    FixedVec4(FP x, FP y, FP z, FP w) : x(x), y(y), z(z), w(w) {
+    inline FixedVec4(FP x, FP y, FP z, FP w) : x(x), y(y), z(z), w(w) {
     }
 
-    FixedVec4 operator+(const FixedVec4& rhs) const {
+    inline FixedVec4 operator+(const FixedVec4& rhs) const {
         return FixedVec4(x + rhs.x, y + rhs.y, z + rhs.z, w + rhs.w);
     }
 
-    FixedVec4 operator-(const FixedVec4& rhs) const {
+    inline FixedVec4 operator-(const FixedVec4& rhs) const {
         return FixedVec4(x - rhs.x, y - rhs.y, z - rhs.z, w - rhs.w);
     }
 
-    FixedVec4 operator*(const FP& value) const {
+    inline FixedVec4 operator*(const FP& value) const {
         return FixedVec4(x * value, y * value, z * value, w * value);
     }
 
