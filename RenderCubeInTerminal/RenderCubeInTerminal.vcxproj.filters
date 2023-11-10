@@ -48,6 +48,9 @@
     <ClCompile Include="PixelShaderManager.cpp">
       <Filter>소스 파일\PixelShader</Filter>
     </ClCompile>
+    <ClCompile Include="TimeStamper.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PseudoRenderer.h">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="PixelShaderManager.h">
       <Filter>소스 파일\PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeStamper.h">
+      <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

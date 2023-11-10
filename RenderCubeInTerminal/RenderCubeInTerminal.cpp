@@ -5,6 +5,9 @@
 #include "DynamicMemoryPool.hpp"
 #include "Math.h"
 #include "LinkedList.hpp"
+#include "TimeStamper.h"
+
+#include <Windows.h>
 
 
 using namespace std;
@@ -12,6 +15,7 @@ using namespace std;
 void ProcessPseudoRenderer();
 
 int main() { 
+    // main render loop
     Renderer renderer;
     renderer.Initialize();
 
