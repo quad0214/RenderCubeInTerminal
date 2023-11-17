@@ -1,5 +1,8 @@
 #include "TimeStamper.h"
+#include <iostream>
+#include <cassert>
 
+const float TimeStamper::TSC_FREQ_MEASURE_SEC = 0.5f;
 
 TimeStamper::TimeStamper()
 {
@@ -11,48 +14,28 @@ TimeStamper::~TimeStamper()
 
 bool TimeStamper::Init()
 {
-	if (mStatus != StamperStatus::BeforeInit) {
+	assert(TSC_FREQ_MEASURE_SEC != 0.0f);
+
+	if (mState != StamperState::BeforeInit) {
 		return false;
-	}
-	mStatus = StamperStatus::BeforeStart;
+	}		
 
-	// allocate string buffers
-	mDebugBuffer = new wchar_t[DEBUG_BUFFER_LEN];
-	ZeroMemory(mDebugBuffer, sizeof(wchar_t) * DEBUG_BUFFER_LEN);
-
-	mCurStampName = new wchar_t[STAMP_BUFFER_LEN];
-	ZeroMemory(mDebugBuffer, sizeof(wchar_t) * STAMP_BUFFER_LEN);
-
-	// set freq
-	LARGE_INTEGER qpcFreq;
-	QueryPerformanceFrequency(&qpcFreq);
-	mQpcFreq = qpcFreq.QuadPart;
-
-#ifdef USE_TSC
-	// todo check is valid tsc
-	int64_t measureQpc = TSC_MEASURE_FREQ_SEC * mQpcFreq;
-
-	LARGE_INTEGER startQpc;
-	LARGE_INTEGER curQpc;
-	uint64_t startTsc;
-	uint64_t curTsc;
-	QueryPerformanceCounter(&startQpc);
-	startTsc = __rdtscp(&mTscAux);
-	QueryPerformanceCounter(&curQpc);	
-	curTsc = __rdtscp(&mTscAux);
-	while (curQpc.QuadPart - startQpc.QuadPart < measureQpc) {
-		QueryPerformanceCounter(&curQpc);
-		curTsc = __rdtscp(&mTscAux);
-	}
-
-	mTscFreq = static_cast<uint64_t>((curTsc - startTsc) * (1.0 / TSC_MEASURE_FREQ_SEC));	
-#endif
+	std::thread initThread(&TimeStamper::InitWorker, this, TSC_FREQ_MEASURE_SEC);	
+	mState = StamperState::DuringInit;
+	initThread.detach();
 
 	return true;
 }
 
 void TimeStamper::Terminate()
 {
+	// terminate init thread if it is working
+	if (mState == StamperState::DuringInit) {
+		mIsTerminateInitThread = true;
+		while (mState == StamperState::DuringInit) {}
+		mIsTerminateInitThread = false;
+	}
+
 	if (mDebugBuffer) {
 		delete[] mDebugBuffer;
 		mDebugBuffer = nullptr;
@@ -61,17 +44,17 @@ void TimeStamper::Terminate()
 	if (mCurStampName) {
 		delete[] mCurStampName;
 		mCurStampName = nullptr;
-	}	
+	}		
 
-	mStatus = StamperStatus::BeforeInit;
+	mState = StamperState::BeforeInit;
 }
 
 void TimeStamper::Start(const wchar_t* stampName)
 {
-	if (mStatus != StamperStatus::BeforeStart) {
+	if (mState != StamperState::BeforeStart) {
 		__debugbreak();
 	}
-	mStatus = StamperStatus::During;
+	mState = StamperState::During;
 	
 	StringCchCopyW(mCurStampName, STAMP_BUFFER_LEN, stampName);		
 
@@ -80,7 +63,7 @@ void TimeStamper::Start(const wchar_t* stampName)
 
 void TimeStamper::Stop()
 {	
-	if (mStatus != StamperStatus::During) {
+	if (mState != StamperState::During) {
 		__debugbreak();
 	}	
 
@@ -91,7 +74,7 @@ void TimeStamper::Stop()
 	StringCbPrintfW(mDebugBuffer, DEBUG_BUFFER_LEN * sizeof(wchar_t), format, mCurStampName, intervalSec);
 	OutputDebugStringW(mDebugBuffer);
 
-	mStatus = StamperStatus::BeforeStart;
+	mState = StamperState::BeforeStart;
 }
 
 inline double TimeStamper::CalculateSec(uint64_t ticks) const
@@ -113,4 +96,52 @@ inline uint64_t TimeStamper::GetTicks()
 
 	return static_cast<uint64_t>(*reinterpret_cast<int64_t*>(&ticks));
 #endif
+}
+
+void TimeStamper::InitWorker(float tscFreqMeasureSec)
+{
+	// allocate string buffers
+	mDebugBuffer = new wchar_t[DEBUG_BUFFER_LEN];
+	ZeroMemory(mDebugBuffer, sizeof(wchar_t) * DEBUG_BUFFER_LEN);
+
+	mCurStampName = new wchar_t[STAMP_BUFFER_LEN];
+	ZeroMemory(mDebugBuffer, sizeof(wchar_t) * STAMP_BUFFER_LEN);
+
+	// set freq
+	LARGE_INTEGER qpcFreq;
+	QueryPerformanceFrequency(&qpcFreq);
+	mQpcFreq = qpcFreq.QuadPart;
+
+#ifdef USE_TSC	
+	// todo check isable to use tsc
+
+	// measure tsc
+	uint64_t tscFreq;
+
+	// todo check isable to use tsc
+	int64_t measureQpc = tscFreqMeasureSec * qpcFreq.QuadPart;
+
+	LARGE_INTEGER startQpc;
+	LARGE_INTEGER curQpc;
+	uint64_t startTsc;
+	uint64_t curTsc;
+	unsigned int tscAux;
+	QueryPerformanceCounter(&startQpc);
+	startTsc = __rdtscp(&mTscAux);
+	QueryPerformanceCounter(&curQpc);
+	curTsc = __rdtscp(&tscAux);
+	while (curQpc.QuadPart - startQpc.QuadPart < measureQpc && !mIsTerminateInitThread) {
+		QueryPerformanceCounter(&curQpc);
+		curTsc = __rdtscp(&tscAux);
+	}
+
+	mTscFreq = static_cast<uint64_t>((curTsc - startTsc) * (1.0 / tscFreqMeasureSec));
+#endif
+	
+	mState = StamperState::BeforeStart;
+}
+
+bool TimeStamper::IsInit() const
+{
+	return mState == StamperState::BeforeStart;
 }
