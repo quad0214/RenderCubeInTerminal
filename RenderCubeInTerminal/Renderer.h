@@ -21,11 +21,9 @@
 #include "Math.h"
 #include "SWRasterizer.h"
 #include "SimplePixelShader.h"
+#include "Primitive.h"
 
 class Renderer {    
-    // TODO: change SWRasterizer::vertex to vertex in this class
-    typedef SWRasterizer::Vertex Vertex;
-    typedef SWRasterizer::Pixel Pixel;
 
 public:
     void Initialize(); // init program
@@ -42,8 +40,8 @@ private:
     void RenderCube(const float rotationX, const float rotationY, const float rotationZ);
     void ClearBuffer();
         
-    void TransformVertexPosition(SWRasterizer::Vertex* pVertex,
-        const SWRasterizer::Vertex& vertex,
+    void TransformVertexPosition(Vertex* pVertex,
+        const Vertex& vertex,
         const float rotationX,
         const float rotationY,
         const float rotationZ);
@@ -161,7 +159,7 @@ private:
     float mRotationZ = 0.0f;
 
     // rasterizer
-    SWRasterizer* mRasterizer = nullptr;
+    SWRasterizer* mRasterize = nullptr;
 
     // pixelShader
     PixelShaderManager* mPixelShaderManager = nullptr;

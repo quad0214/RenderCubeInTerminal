@@ -9,6 +9,10 @@
 
 #include <Windows.h>
 
+#include <mutex>
+#include <thread>
+#include <processthreadsapi.h>
+
 
 using namespace std;
 
@@ -25,8 +29,6 @@ int main() {
     }
 
     renderer.Terminate();
-
-
 }
 
 

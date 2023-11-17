@@ -6,61 +6,20 @@
 #define NORMAL_RASTERIZATION 0
 #define PARTITION_RASTERIZATION 1
 #define ADVANCED_RASTERIZATION 2
-#define RASTERIZATION_TYPE ADVANCED_RASTERIZATION
+#define RASTERIZATION_TYPE NORMAL_RASTERIZATION
+
+//#define FIXED_RASTERIZATION
 
 
 #include "DynamicMemoryPool.hpp"
-#include "Math.h"
+#include "Primitive.h"
 #include "List.hpp"
+#include "IRasterizable.h"
+#include "RasterizeFixed.h"
+#include "RasterizeFloating.h"
 
 class SWRasterizer {
 public:
-	struct Vertex {
-		Vec4 pos;
-
-		Vertex() : pos(Vec4::ZERO) {
-		}
-
-		Vertex(Vec4 pos) : pos(pos) {}
-	};
-
-	struct FixedVertex {
-		FixedVec4 pos;
-
-		FixedVertex() : pos(FixedVec4::ZERO) {
-
-		}
-
-		FixedVertex(FixedVec4 pos) : pos(pos) {
-
-		}
-
-		FixedVertex(Vec4 pos) : pos(FixedVec4(FP(pos.x), FP(pos.y), FP(pos.z), FP(pos.w))) {
-		}
-
-
-	};
-
-	struct Triangle {
-		union {
-			Vertex vertices[3];
-			struct {
-				Vertex v1;
-				Vertex v2;
-				Vertex v3;
-			};
-		};
-
-		Triangle(Vertex v1, Vertex v2, Vertex v3) : v1(v1), v2(v2), v3(v3) {}
-	};
-
-	struct Pixel {
-		Vec4 pos;
-
-		Pixel() : pos(Vec4::ZERO) {}
-		Pixel(Vec4 pos) : pos(pos) {}
-	};
-
 	// limit size of viewport for avoiding fixed point overflow
 	// -2^(FP::INT_BITS_LEN-2) <= x, y <= 2^(FP::INT_BITS_LEN-2) - 1	
 	// TODO : think size of viewport. in direct3d 11 functional specification, 
@@ -104,7 +63,7 @@ public:
 		return mPixels->GetSize();
 	}
 	inline const Pixel& GetPixel(uint32_t index) const {
-		return mPixels->At<SWRasterizer::Pixel>(index);
+		return mPixels->At<Pixel>(index);
 	}
 
 	void SetupViewport(const Viewport& viewport);
@@ -239,7 +198,9 @@ private:
 
 	List* mPixels = nullptr;
 	List* mVerticesPool[2] = {nullptr, };
-	List* mIndicesPool[2] = {nullptr, };
+	List* mIndicesPool[2] = { nullptr, };
+	
+	IRasterizable* mRasterize;
 
 	// dxEdgeFunctionValue, 2 * dxEdgeFunctionValue, 4 * dxEdgeFunctionValue, 8 * dxEdgeFunctionValue
 	DF mDxEdge01s[4];

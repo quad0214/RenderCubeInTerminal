@@ -148,6 +148,8 @@
     <ClCompile Include="Math.cpp" />
     <ClCompile Include="PixelShaderManager.cpp" />
     <ClCompile Include="PseudoRenderer.cpp" />
+    <ClCompile Include="RasterizeFixed.cpp" />
+    <ClCompile Include="RasterizeFloating.cpp" />
     <ClCompile Include="RenderCubeInTerminal.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SimplePixelShader.cpp" />
@@ -158,12 +160,16 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="IRasterizable.h" />
     <ClInclude Include="LinkedList.hpp" />
     <ClInclude Include="List.hpp" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="PixelShader.h" />
     <ClInclude Include="PixelShaderManager.h" />
+    <ClInclude Include="Primitive.h" />
     <ClInclude Include="PseudoRenderer.h" />
+    <ClInclude Include="RasterizeFixed.h" />
+    <ClInclude Include="RasterizeFloating.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SimplePixelShader.h" />
     <ClInclude Include="StaticMemoryPool.hpp" />

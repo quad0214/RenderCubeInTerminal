@@ -17,9 +17,9 @@ void Renderer::Initialize() {
     mViewport = SWRasterizer::Viewport(0, 0, Constants::RENDER_SCREEN_WIDTH, Constants::RENDER_SCREEN_HEIGHT, 0, 1.0f);    
 
     // rasterizer
-    mRasterizer = new SWRasterizer;
-    mRasterizer->Initialize();
-    mRasterizer->SetupViewport(mViewport);
+    mRasterize = new SWRasterizer;
+    mRasterize->Initialize();
+    mRasterize->SetupViewport(mViewport);
 
     // pixel shader
     mPixelShaderManager = new PixelShaderManager();
@@ -46,10 +46,10 @@ void Renderer::Terminate() {
     }
 #endif
 
-    if (mRasterizer != nullptr) {
-        mRasterizer->Terminate();
-        delete mRasterizer;
-        mRasterizer = nullptr;
+    if (mRasterize != nullptr) {
+        mRasterize->Terminate();
+        delete mRasterize;
+        mRasterize = nullptr;
     }
 
     if (mPixelShaderManager != nullptr) {
@@ -104,11 +104,11 @@ std::chrono::steady_clock::time_point Renderer::Frame(std::chrono::steady_clock:
 void Renderer::Render(const Vertex* vertices, uint32_t vertexNum, const uint32_t* indices, uint32_t indexNum, PixelShader* pixelShader)
 {
     // rasterize
-    mRasterizer->Execute(vertices, vertexNum, indices, indexNum);
+    mRasterize->Execute(vertices, vertexNum, indices, indexNum);
 
     // pixel shader
     mPixelShaderManager->SetupPixelShader(pixelShader);
-    mPixelShaderManager->Execute(mRasterizer);
+    mPixelShaderManager->Execute(mRasterize);
 
     // output merger
     for (int i = 0; i < mPixelShaderManager->GetOutPixelLen(); i++) {
@@ -221,7 +221,7 @@ void Renderer::ClearBuffer() {
     memsetAnyByte(reinterpret_cast<wchar_t*>(mConsoleBuffer), Constants::CONSOLE_CLEAR_CHAR, Constants::CONSOLE_SCREEN_HEIGHT * Constants::CONSOLE_SCREEN_WIDTH);
 }
 
-void Renderer::TransformVertexPosition(SWRasterizer::Vertex* pVertex, const SWRasterizer::Vertex& vertex, const float rotationX, const float rotationY, const float rotationZ)
+void Renderer::TransformVertexPosition(Vertex* pVertex, const Vertex& vertex, const float rotationX, const float rotationY, const float rotationZ)
 {
     assert(pVertex != nullptr);
 

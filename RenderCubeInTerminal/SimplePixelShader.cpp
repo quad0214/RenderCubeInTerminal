@@ -5,7 +5,7 @@ void SimplePixelShader::SetCharacter(wchar_t c)
     mCharacter = c;
 }
 
-PixelShaderManager::OutPixel SimplePixelShader::ExecuteOnePixel(const SWRasterizer::Pixel& pixel)
+PixelShaderManager::OutPixel SimplePixelShader::ExecuteOnePixel(const Pixel& pixel)
 {
     PixelShaderManager::OutPixel out;
     out.x = pixel.pos.x;

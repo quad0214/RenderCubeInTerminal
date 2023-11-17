@@ -51,6 +51,12 @@
     <ClCompile Include="TimeStamper.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="RasterizeFixed.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="RasterizeFloating.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PseudoRenderer.h">
@@ -90,6 +96,18 @@
       <Filter>소스 파일\PixelShader</Filter>
     </ClInclude>
     <ClInclude Include="TimeStamper.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizeFixed.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterizeFloating.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Primitive.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="IRasterizable.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>

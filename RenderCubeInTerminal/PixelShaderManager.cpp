@@ -52,7 +52,7 @@ void PixelShaderManager::Execute(SWRasterizer* rasterizer)
 	uint64_t pixelLength = rasterizer->GetPixelLength();
 
 	for (int i = 0; i < pixelLength; i++) {
-		const SWRasterizer::Pixel& inputPixel = rasterizer->GetPixel(i);
+		const Pixel& inputPixel = rasterizer->GetPixel(i);
 		mOutputPixels[i] = mPixelShader->ExecuteOnePixel(inputPixel);
 	}
 

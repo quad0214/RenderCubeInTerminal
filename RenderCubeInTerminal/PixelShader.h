@@ -1,8 +1,8 @@
 #pragma once
-#include "SWRasterizer.h"
+#include "Primitive.h"
 #include "PixelShaderManager.h"
 
 class PixelShader {
 public:
-	virtual inline PixelShaderManager::OutPixel ExecuteOnePixel(const SWRasterizer::Pixel& pixel) = 0;
+	virtual inline PixelShaderManager::OutPixel ExecuteOnePixel(const Pixel& pixel) = 0;
 };
