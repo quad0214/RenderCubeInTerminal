@@ -24,9 +24,63 @@ void RasterizeFloating::Rasterize(List* pixels, const List* floatingVertices, co
 #if RASTERIZATION_TYPE == NORMAL_RASTERIZATION
 		for (float y = startY; y <= maxY; y += 1.0f) {
 			for (float x = startX; x <= maxX; x += 1.0f) {
-				float edge01 = (x - v0.pos.x) * (v1.pos.y - v0.pos.y) - (y - v0.pos.y) * (v1.pos.x - v0.pos.x);
-				float edge12 = (x - v1.pos.x) * (v2.pos.y - v1.pos.y) - (y - v1.pos.y) * (v2.pos.x - v1.pos.x);
-				float edge20 = (x - v2.pos.x) * (v0.pos.y - v2.pos.y) - (y - v2.pos.y) * (v0.pos.x - v2.pos.x);
+
+				float edge01;
+				float edge12;
+				float edge20;
+
+				edge01 = (x - v0.pos.x) * (v1.pos.y - v0.pos.y) - (y - v0.pos.y) * (v1.pos.x - v0.pos.x);
+				edge12 = (x - v1.pos.x) * (v2.pos.y - v1.pos.y) - (y - v1.pos.y) * (v2.pos.x - v1.pos.x);
+				edge20 = (x - v2.pos.x) * (v0.pos.y - v2.pos.y) - (y - v2.pos.y) * (v0.pos.x - v2.pos.x);
+
+				if (edge01 == edge12 && edge12 == edge20) {
+					__debugbreak();
+				}
+
+				// edge function
+				// = (x - v0.x) * (v1.y - v0.y) - (y - v0.y) * (v1.x - v0.x)
+				// = (eA[0] - eA[1]) * (eA[2] - eA[3]) - (eA[4] - eA[5]) * (eA[6] - eA[7])
+				// = eB[0] * eB[1] - eB[2] * eB[3]
+				// = eC[0] - eC[1]
+				// = edge
+
+				__declspec(align(16)) float eA01[8]{x, v0.pos.x, v1.pos.y, v0.pos.y, y, v0.pos.y, v1.pos.x, v0.pos.x};
+				__declspec(align(16)) float eA12[8]{x, v1.pos.x, v2.pos.y, v1.pos.y, y, v1.pos.y, v2.pos.x, v1.pos.x};
+				__declspec(align(16)) float eA20[8]{x, v2.pos.x, v0.pos.y, v2.pos.y, y, v2.pos.y, v0.pos.x, v2.pos.x};
+				__declspec(align(16)) float eB01[4];
+				__declspec(align(16)) float eB12[4];
+				__declspec(align(16)) float eB20[4];
+				__declspec(align(16)) float eC01[2];
+				__declspec(align(16)) float eC12[2];
+				__declspec(align(16)) float eC20[2];
+
+				eB01[0] = eA01[0] - eA01[1];
+				eB01[1] = eA01[2] - eA01[3];
+				eB01[2] = eA01[4] - eA01[5];
+				eB01[3] = eA01[6] - eA01[7];
+				
+				eB12[0] = eA12[0] - eA12[1];
+				eB12[1] = eA12[2] - eA12[3];
+				eB12[2] = eA12[4] - eA12[5];
+				eB12[3] = eA12[6] - eA12[7];
+				
+				eB20[0] = eA20[0] - eA20[1];
+				eB20[1] = eA20[2] - eA20[3];
+				eB20[2] = eA20[4] - eA20[5];
+				eB20[3] = eA20[6] - eA20[7];
+								
+				eC01[0] = eB01[0] * eB01[1];
+				eC01[1] = eB01[2] * eB01[3];
+				eC12[0] = eB12[0] * eB12[1];
+				eC12[1] = eB12[2] * eB12[3];
+				eC20[0] = eB20[0] * eB20[1];
+				eC20[1] = eB20[2] * eB20[3];
+
+				edge01 = eC01[0] - eC01[1];
+				edge12 = eC12[0] - eC12[1];
+				edge20 = eC20[0] - eC20[1];
+
+				
 
 				//TODO : 조건 if 최적화
 				if (edge01 > 0
