@@ -1,39 +1,62 @@
 # RenderCubeInTerminal
-This program renders a rotating cube in terminal(command prompt)
+
+A **software rasterizer implementation** that renders a 3D rotating cube in Windows terminal/command prompt. This project demonstrates a complete rendering pipeline from vertex transformation through rasterization using fixed-point and floating-point arithmetic.
 
 ![image](https://user-images.githubusercontent.com/34961209/214741189-964b30ac-ac83-4178-b2c0-2d7b42014f22.png)
 
-## Implementation
-This program renders a rotation cube using the standard rendering technique.
-Convert object coordinates in 6 sides of the cube to screen coordinates. And render(= print specific character) if they are on screen.
-For simplification, several assumptions are existed.
-- the basis of world, camera space are same.
-- position of the cube in world is origin
-- etc...
+## Features
 
-One thing is existed that's different from the standard rendering technique in this program; In the same manner as above, it doesn't progress rasterization. Instead, slices all sides of the cube into small vertices(in program, indicate segments). And converts them to screen space & render. This method doesn't perfect when the cube is close to the camera because it causes holes in rendered sides of the cube. But when the distance between the cube and the camera is enough far, holes are not seen. so I bear(ignore) this.
+### Complete Software Rasterizer Pipeline
+- **Vertex Transformation**: Full 3D transformation pipeline with rotation matrices
+- **Homogeneous Clipping**: Sutherland-Hodgman polygon clipping against view frustum planes
+- **Perspective Division**: Conversion from homogeneous coordinates to screen space
+- **Back-Face Culling**: Efficient triangle culling for hidden surface removal
+- **Viewport Transformation**: Screen-space coordinate mapping
 
-## Inspired by
-https://www.youtube.com/embed/p09i_hoFdd0
+### Dual Arithmetic Implementations
+- **Fixed-Point Rasterization**: Precision-controlled fixed-point arithmetic with configurable precision levels
+- **Floating-Point Rasterization**: Standard IEEE 754 floating-point implementation with dynamic rasterization modes
 
-## How to use
+### Optimizations
+- **Hierarchical Rasterization**: Multi-level tile-based processing for efficient triangle coverage
+- **Memory Pooling**: Allocation-free rasterization with pre-allocated memory pools
+- **Edge Function Precomputation**: Optimization of edge derivatives for tile-based processing
+- **Bounding Box Culling**: Viewport clipping before triangle rasterization
+
+### Pixel Rendering
+- **Pluggable Pixel Shader System**: Extensible interface for custom pixel processing
+- **Depth Testing**: Z-buffer implementation for proper occlusion handling
+- **ASCII Rendering**: Terminal output with depth-based character selection
+
+## Overview
+
+The rasterizer implements a complete graphics pipeline:
+
+```
+Input Vertices → Transform → Clip → Perspective Divide → 
+Cull → Viewport Transform → Rasterize → Output Pixels
+```
+
+**Clipping**: Uses Sutherland-Hodgman algorithm to clip triangles against 6 frustum planes, supporting polygon expansion up to 9 triangles per input.
+
+**Rasterization**: Implements edge function method for point-in-triangle testing with both fixed-point and floating-point backends, including depth interpolation for proper surface visibility.
+
+## Build
+
 ### Requirements
-- windows
-- visual studio
+- Windows 10/11
+- Visual Studio 2019 or later with C++17 support
 
-If you want to use other environments, download code file(cpp) only and configure makefile.
+### Build Instructions
+```bash
+git clone https://github.com/quad0214/RenderCubeInTerminal.git
+# Open RenderCubeInTerminal.sln in Visual Studio and build
+```
 
-### Use
-- windows & visual studio : clone & open it in visual studio.
-- other environment : download code only. and modify it to suit your environment.
+## Inspiration
 
+Inspired by [this video](https://www.youtube.com/embed/p09i_hoFdd0) on approximate rasterization techniques.
 
-## P.S.
-### XXX : I THINK THIS PROGRAM HAS A BUG!
-If you think this program has a bug or confilct, please issue on this project page.(https://github.com/quad0214/RenderCubeInTerminal/issues)  
-Simple requests or questions are also okay.  
-Thank you. :)
+## Contributing
 
-### And
-I'm not good at English. Therefore, incorrect expressions may exist in the document. I apologize in advance for this. If you find a wrong expression, please give me an issue. I'll fix it quickly.  
-Thank you. :)
+Found a bug or have suggestions? Please open an [issue](https://github.com/quad0214/RenderCubeInTerminal/issues).
